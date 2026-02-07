@@ -1,7 +1,6 @@
 name: sdui_server
-description: A server app using the shelf package and Docker.
+description: Dart server that emits UI JSON for the SDUI client.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
 
 environment:
   sdk: ^3.8.1
@@ -9,6 +8,8 @@ environment:
 dependencies:
   shelf: ^1.4.0
   shelf_router: ^1.1.0
+  sdui_models:
+    path: ../sdui_models
 
 dev_dependencies:
   http: ^1.1.0

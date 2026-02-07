@@ -1,8 +1,10 @@
-/// Support for doing something awesome.
+/// SDUI Models - Shared data models for Server-Driven UI
 ///
-/// More dartdocs go here.
-library;
+/// This library contains the model definitions used by both
+/// the server (to build UI JSON) and the client (to parse and render UI).
+library sdui_models;
 
-export 'src/sdui_models_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+// Export all models
+export 'src/models/action_model.dart';
+export 'src/models/component_model.dart';
+export 'src/models/screen_model.dart';
