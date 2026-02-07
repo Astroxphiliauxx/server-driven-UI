@@ -135,7 +135,7 @@ ScreenModel buildSettingsScreen() {
       ComponentModel.infoTile(
         leadingIcon: 'info',
         title: 'About',
-        subtitle: 'App version 1.0.0',
+        subtitle: 'App version 1.2.0',
       ),
       
       ComponentModel.spacer(height: 24),
@@ -194,15 +194,35 @@ void main(List<String> args) async {
     return handleScreenRequest(screenName);
   });
 
-  // Health check endpoint
-  router.get('/', (Request request) {
-    return Response.ok('SDUI Server is running!');
-  });
+  // CORS Middleware
+  Middleware corsHeaders() {
+    return (innerHandler) {
+      return (request) async {
+        final response = await innerHandler(request);
+        return response.change(headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        });
+      };
+    };
+  }
 
-  // Configure pipeline with logging
+  // Configure pipeline with logging and CORS
   final handler = Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(router.call);
+      .addMiddleware(corsHeaders())
+      .addHandler((request) {
+        // Handle CORS preflight requests
+        if (request.method == 'OPTIONS') {
+          return Response.ok('', headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+          });
+        }
+        return router.call(request);
+      });
 
   // Start server
   final ip = InternetAddress.anyIPv4;
