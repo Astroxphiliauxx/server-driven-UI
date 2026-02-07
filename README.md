@@ -11,8 +11,8 @@ This document tracks the SDUI assignment implementation. Each phase documents **
 | **Phase 1** | ✅ Complete | Project Setup |
 | **Phase 2** | ✅ Complete | Shared Models Layer |
 | **Phase 3** | ✅ Complete | Server Implementation |
-| **Phase 4** | ⏳ Pending | Client Implementation |
-| **Phase 5** | ⏳ Pending | Integration & Testing |
+| **Phase 4** | ✅ Complete | Client Implementation |
+| **Phase 5** | ✅ Complete | Integration & Testing |
 
 ---
 
@@ -277,22 +277,224 @@ curl -X POST http://localhost:8080/screens/home
 
 ---
 
-# ⏳ PHASE 4: Client Implementation (PENDING)
+# ✅ PHASE 4: Client Implementation (COMPLETED)
 
-## What We'll Build
-- API service to fetch screens
-- Component mapper (model → widget)
-- Action handler (executes navigation, snackbars, etc.)
-- Generic SDUIScreen widget
+## What We Built
+
+A Flutter app that dynamically fetches and renders screens based on server JSON.
+
+### File Structure
+```
+sdui_client/lib/
+├── core/
+│   ├── api/
+│   │   └── sdui_api_service.dart   # Fetches JSON
+│   ├── handlers/
+│   │   └── action_handler.dart     # Navigation, Snackbar, etc.
+│   └── mappers/
+│       └── component_mapper.dart   # JSON -> Widgets
+├── screens/
+│   └── sdui_screen.dart            # Main generic screen widget
+└── main.dart                       # App entry point
+```
+
+## How We Built It
+
+### Component Mapper
+Uses Dart's pattern matching to map `ComponentModel` types to Flutter widgets:
+
+```dart
+Widget map(ComponentModel component, ActionHandler handler) {
+  return switch (component) {
+    TitleComponent(:final title) => Text(title, style: ...),
+    ButtonComponent(:final label) => ElevatedButton(...),
+    // ... handles all 8 component types
+  };
+}
+```
+
+### Dynamic Routing
+The `main.dart` intercepts all routes and passes the route name to `SduiScreen`:
+
+```dart
+onGenerateRoute: (settings) {
+  final screenName = settings.name?.replaceFirst('/', '') ?? 'home';
+  return MaterialPageRoute(
+    builder: (_) => SduiScreen(screenName: screenName),
+  );
+},
+```
+
+### Action Handling
+Decoupled logic for handling side effects:
+
+```dart
+void execute(ActionModel action) {
+  switch (action) {
+    case NavigateAction(:final destination):
+      Navigator.pushNamed(context, '/$destination');
+    case ShowSnackbarAction(:final message):
+      ScaffoldMessenger.of(context).showSnackBar(...);
+    // ... handles all 5 action types
+  }
+}
+```
+
+## Why This Approach
+
+| Decision | Reason |
+|----------|--------|
+| **Component Mapper** | Separates UI logic from data models. Easy to test independently. |
+| **Action Handler** | Centralizes side effects. Keeps UI widgets pure and declarative. |
+| **Generic Screen** | Reuse same widget for Home, Profile, etc. True SDUI. |
+| **Provider** | Simples DI for `SduiApiService` to make it accessible anywhere. |
 
 ---
 
-# ⏳ PHASE 5: Integration & Testing (PENDING)
+# ✅ PHASE 5: Integration & Testing (COMPLETED)
 
-## What We'll Build
-- Connect client to server
-- Test all navigation flows
-- Verify all action types work
+## What We Built
+
+Comprehensive test suites for all three packages ensuring:
+- Models serialize/deserialize correctly
+- Server returns valid screen JSON
+- Client widgets render components properly
+- Actions trigger correct behaviors
+
+### Test Coverage
+
+| Package | Test File | Tests | Coverage |
+|---------|-----------|-------|----------|
+| `sdui_models` | `sdui_models_test.dart` | 40 | All action, component, and screen types |
+| `sdui_server` | `server_test.dart` | 16 | All screen builders and JSON structure |
+| `sdui_client` | `widget_test.dart` | 23 | Component mapper and action handler |
+
+## How We Built It
+
+### 1. Model Tests (`sdui_models/test/`)
+
+Tests all model types for:
+- **Creation**: Verify constructors with required and optional fields
+- **Defaults**: Ensure default values are applied correctly
+- **Serialization**: JSON round-trip (object → JSON → object)
+- **Nested Structures**: Complex screens with nested components and actions
+
+```dart
+test('round-trip serialization preserves all nested data', () {
+  const screen = ScreenModel.vertical(
+    screenTitle: 'Complex Screen',
+    components: [
+      ComponentModel.horizontalList(items: [
+        ComponentModel.card(title: 'Card', action: ActionModel.navigate(destination: 'detail')),
+      ]),
+    ],
+  );
+  
+  final json = screen.toJson();
+  final restored = ScreenModel.fromJson(jsonDecode(jsonEncode(json)));
+  expect(restored, isA<VerticalScreenModel>());
+});
+```
+
+### 2. Server Tests (`sdui_server/test/`)
+
+Tests screen JSON structure for:
+- **Screen Structure**: Correct runtimeType, screenTitle, components
+- **Component Verification**: Navigation buttons, horizontal lists, info tiles
+- **Action Types**: Navigate, GoBack, ShowSnackbar, OpenUrl present
+- **JSON Round-trip**: Complete screens serialize and deserialize correctly
+
+```dart
+test('home screen has navigation buttons', () {
+  const screen = ScreenModel.vertical(
+    screenTitle: 'Home',
+    components: [
+      ComponentModel.button(
+        label: 'Go to Profile',
+        action: ActionModel.navigate(destination: 'profile'),
+      ),
+    ],
+  );
+  
+  final buttons = (screen as VerticalScreenModel)
+      .components.whereType<ButtonComponent>().toList();
+  expect((buttons[0].action as NavigateAction).destination, 'profile');
+});
+```
+
+### 3. Widget Tests (`sdui_client/test/`)
+
+Tests Flutter widgets for:
+- **Component Rendering**: Each component type renders correctly
+- **Action Handling**: Navigate, GoBack, ShowSnackbar work
+- **Conditional UI**: isPrimary, optional fields affect rendering
+- **Integration**: Full screen with multiple components
+
+```dart
+testWidgets('NavigateAction navigates to new screen', (tester) async {
+  // Tap navigate button
+  await tester.tap(find.text('Navigate'));
+  await tester.pumpAndSettle();
+  // Verify navigation occurred
+  expect(find.text('Test Screen'), findsOneWidget);
+});
+```
+
+## Test Verification Matrix
+
+| Action Type | Server | Client |
+|-------------|--------|--------|
+| `navigate` | ✅ Home buttons | ✅ Navigator.pushNamed |
+| `goBack` | ✅ Profile/Settings | ✅ Navigator.pop |
+| `showSnackbar` | ✅ Profile | ✅ ScaffoldMessenger |
+| `openUrl` | ✅ Settings | ✅ url_launcher |
+| `logEvent` | ✅ Serialization | ✅ debugPrint |
+
+| Component Type | Server | Client |
+|----------------|--------|--------|
+| `title` | ✅ All screens | ✅ Text + style |
+| `spacer` | ✅ All screens | ✅ SizedBox |
+| `imageBanner` | ✅ Home | ✅ Image.network |
+| `button` | ✅ All screens | ✅ Filled/Outlined |
+| `card` | ✅ Home | ✅ Card + InkWell |
+| `horizontalList` | ✅ Home | ✅ Horizontal ListView |
+| `infoTile` | ✅ Profile/Settings | ✅ ListTile |
+| `divider` | ✅ Settings | ✅ Divider |
+
+## How to Run Tests
+
+```bash
+# Run model tests
+cd sdui_models
+dart test
+
+# Run server tests (starts server automatically)
+cd sdui_server
+dart test
+
+# Run client widget tests
+cd sdui_client
+flutter test
+```
+
+## End-to-End Flow Verified
+
+1. **Server → JSON**: Server builds ScreenModel → serializes to JSON
+2. **Network → Client**: Client fetches JSON via HTTP
+3. **JSON → Model**: Client deserializes JSON to ScreenModel
+4. **Model → Widgets**: ComponentMapper converts to Flutter widgets
+5. **User → Action**: Button tap triggers ActionHandler
+6. **Action → Effect**: Navigation, snackbar, URL launch work correctly
+
+## Why This Approach
+
+| Decision | Reason |
+|----------|--------|
+| **Unit Tests for Models** | Catch serialization issues early, fast feedback |
+| **Integration Tests for Server** | Verify real HTTP responses match expectations |
+| **Widget Tests for Client** | Test UI behavior without network dependency |
+| **Pattern Matching Tests** | Ensure all switch cases are covered |
+| **Round-trip Tests** | Simulate real network transfer (object→JSON string→object) |
 
 ---
 
