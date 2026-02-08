@@ -1,4 +1,4 @@
-# Server-Driven UI Demo
+# Server-Driven UI 
 
 This project demonstrates a Server-Driven UI (SDUI) implementation using Flutter and Dart. The server sends JSON describing the UI, and the Flutter client renders it dynamically.
 
