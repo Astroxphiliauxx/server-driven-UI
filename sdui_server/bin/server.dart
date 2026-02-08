@@ -78,7 +78,7 @@ void main(List<String> args) async {
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
   final server = await serve(handler, ip, port);
   
-  print('🚀 SDUI Server running on http://localhost:${server.port}');
-  print('📱 Available screens: home, profile, settings');
-  print('📡 Endpoint: POST /screens/<screenName>');
+  print('SDUI Server running on http://localhost:${server.port}');
+  print('Available screens: home, profile, settings');
+  print('Endpoint: POST /screens/<screenName>');
 }
