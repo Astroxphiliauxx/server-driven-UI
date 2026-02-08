@@ -6,159 +6,8 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:sdui_models/sdui_models.dart';
 
-// ============================================
-// SCREEN BUILDERS
-// Each function returns a ScreenModel for a specific screen
-// ============================================
+import 'package:sdui_server/screens/screens.dart';
 
-/// Home Screen - Main landing page
-/// Contains: title, image banner, horizontal card list, navigation buttons
-ScreenModel buildHomeScreen() {
-  return ScreenModel.vertical(
-    screenTitle: 'Home',
-    components: [
-      // Page title
-      const ComponentModel.title(title: 'Welcome to SDUI App'),
-      
-      // Image banner
-      const ComponentModel.imageBanner(
-        imageUrl: 'https://picsum.photos/seed/sdui/400/200',
-        height: 200,
-      ),
-      
-      const ComponentModel.spacer(height: 16),
-      
-      // Horizontal list of 4 cards
-      ComponentModel.horizontalList(
-        height: 140,
-        items: List.generate(
-          4,
-          (i) => ComponentModel.card(
-            title: 'Card ${i + 1}',
-            subtitle: 'This is card number ${i + 1}',
-          ),
-        ),
-      ),
-      
-      const ComponentModel.spacer(height: 24),
-      
-      // Navigation button to Profile
-      const ComponentModel.button(
-        label: 'Go to Profile',
-        isPrimary: true,
-        action: ActionModel.navigate(destination: 'profile'),
-      ),
-      
-      // Navigation button to Settings
-      const ComponentModel.button(
-        label: 'Go to Settings',
-        action: ActionModel.navigate(destination: 'settings'),
-      ),
-    ],
-  );
-}
-
-/// Profile Screen - User profile page
-/// Contains: title, info tile with avatar, stats card, snackbar button, back button
-ScreenModel buildProfileScreen() {
-  return const ScreenModel.vertical(
-    screenTitle: 'Profile',
-    components: [
-      // Page title
-      ComponentModel.title(title: 'Your Profile'),
-      
-      ComponentModel.spacer(height: 16),
-      
-      // User info tile with avatar
-      ComponentModel.infoTile(
-        avatarUrl: 'https://i.pravatar.cc/150?u=sdui',
-        title: 'John Doe',
-        subtitle: 'john.doe@email.com',
-      ),
-      
-      ComponentModel.spacer(height: 16),
-      
-      // User statistics card
-      ComponentModel.card(
-        title: 'Your Stats',
-        subtitle: '150 posts • 2.5k followers • 890 following',
-      ),
-      
-      ComponentModel.spacer(height: 24),
-      
-      // Show snackbar button
-      ComponentModel.button(
-        label: 'Show Message',
-        isPrimary: true,
-        action: ActionModel.showSnackbar(message: 'Hello from Server-Driven UI!'),
-      ),
-      
-      // Go back button
-      ComponentModel.button(
-        label: 'Go Back',
-        action: ActionModel.goBack(),
-      ),
-    ],
-  );
-}
-
-/// Settings Screen - App settings page
-/// Contains: title, info tiles for settings sections, dividers, URL button, back button
-ScreenModel buildSettingsScreen() {
-  return const ScreenModel.vertical(
-    screenTitle: 'Settings',
-    components: [
-      // Page title
-      ComponentModel.title(title: 'Settings'),
-      
-      ComponentModel.spacer(height: 16),
-      
-      // Notifications setting
-      ComponentModel.infoTile(
-        leadingIcon: 'notifications',
-        title: 'Notifications',
-        subtitle: 'Manage your notification preferences',
-      ),
-      
-      ComponentModel.divider(),
-      
-      // Privacy setting
-      ComponentModel.infoTile(
-        leadingIcon: 'privacy',
-        title: 'Privacy',
-        subtitle: 'Control your data and privacy settings',
-      ),
-      
-      ComponentModel.divider(),
-      
-      // About section
-      ComponentModel.infoTile(
-        leadingIcon: 'info',
-        title: 'About',
-        subtitle: 'App version 1.2.0',
-      ),
-      
-      ComponentModel.spacer(height: 24),
-      
-      // Open URL button
-      ComponentModel.button(
-        label: 'Visit Flutter Website',
-        isPrimary: true,
-        action: ActionModel.openUrl(url: 'https://flutter.dev'),
-      ),
-      
-      // Go back button
-      ComponentModel.button(
-        label: 'Go Back',
-        action: ActionModel.goBack(),
-      ),
-    ],
-  );
-}
-
-// ============================================
-// SERVER SETUP
-// ============================================
 
 void main(List<String> args) async {
   // Create router
@@ -194,7 +43,7 @@ void main(List<String> args) async {
     return handleScreenRequest(screenName);
   });
 
-  // CORS Middleware
+  
   Middleware corsHeaders() {
     return (innerHandler) {
       return (request) async {
