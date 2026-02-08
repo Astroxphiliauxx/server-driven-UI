@@ -2,7 +2,7 @@
 
 This project demonstrates a Server-Driven UI (SDUI) implementation using Flutter and Dart. The server sends JSON describing the UI, and the Flutter client renders it dynamically.
 
-## 🚀 How to Run
+## How to Run
 
 ### 1. Start the Server
 Open a terminal in the `sdui_server` directory and run:
@@ -24,7 +24,7 @@ flutter run
 
 ---
 
-## 🛠️ Setup Steps
+## Setup Steps
 
 If you are setting this up for the first time:
 
